@@ -10,16 +10,15 @@ use handlers::*;
 
 use axum::Router;
 use dotenv::dotenv;
-use std::env;
 use std::net::SocketAddr;
+use std::str::FromStr;
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
     tracing_subscriber::fmt::init();
 
-    let port_env = env::var("PORT").expect("PORT must be set");
-    let port = port_env.parse::<u16>().unwrap();
+    let port = std::env::var("PORT").unwrap_or(String::from("8080"));
 
     // api routes and router
     let app = Router::new()
@@ -37,7 +36,7 @@ async fn main() {
         );
 
     // bind port and server then serve router
-    let addr = SocketAddr::from(([127, 0, 0, 1], port));
+    let addr = SocketAddr::from_str(&format!("0.0.0.0:{}", port)).unwrap();
     tracing::event!(Level::INFO, "Axum start on {}", port);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
