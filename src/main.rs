@@ -1,7 +1,14 @@
 mod utils;
+use axum::http::{HeaderValue, Method};
+use axum::routing::post;
+use tower_http::cors::CorsLayer;
 use tracing::Level;
+mod handlers;
+mod state;
 
-use axum::{routing::get, Router};
+use handlers::*;
+
+use axum::Router;
 use dotenv::dotenv;
 use std::env;
 use std::net::SocketAddr;
@@ -14,18 +21,26 @@ async fn main() {
     let port_env = env::var("PORT").expect("PORT must be set");
     let port = port_env.parse::<u16>().unwrap();
 
-    // Declare API router and routes
-    let app = Router::new().route("/", get(root));
+    // api routes and router
+    let app = Router::new()
+        .route("/getNFT", post(fetch_nft_handler))
+        .layer(
+            CorsLayer::new()
+                .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
+                .allow_methods([Method::POST]),
+        )
+        .layer(
+            CorsLayer::new()
+                // add deployed front end url here
+                .allow_origin("".parse::<HeaderValue>().unwrap())
+                .allow_methods([Method::POST]),
+        );
 
-    // Bind server to PORT and serve the router
+    // bind port and server then serve router
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
     tracing::event!(Level::INFO, "Axum start on {}", port);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
         .unwrap();
-}
-
-async fn root() -> &'static str {
-    "Hello, World!"
 }
