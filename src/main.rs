@@ -1,6 +1,6 @@
 mod utils;
 use axum::http::{HeaderValue, Method};
-use axum::routing::post;
+use axum::routing::get;
 use tower_http::cors::CorsLayer;
 use tracing::Level;
 mod handlers;
@@ -23,17 +23,17 @@ async fn main() {
 
     // api routes and router
     let app = Router::new()
-        .route("/getNFT", post(fetch_nft_handler))
+        .route("/getNFT/mint/:id/network/:network", get(fetch_nft_handler))
         .layer(
             CorsLayer::new()
                 .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
-                .allow_methods([Method::POST]),
+                .allow_methods([Method::POST, Method::GET]),
         )
         .layer(
             CorsLayer::new()
                 // add deployed front end url here
                 .allow_origin("".parse::<HeaderValue>().unwrap())
-                .allow_methods([Method::POST]),
+                .allow_methods([Method::POST, Method::GET]),
         );
 
     // bind port and server then serve router

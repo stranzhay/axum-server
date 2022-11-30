@@ -1,7 +1,8 @@
 use std::str::FromStr;
 
 use crate::state::{Data, Metadata as MetadataWrapper};
-use crate::utils::network::NetworkConfig;
+use crate::utils::Network;
+use axum::extract::Path;
 use axum::{http::StatusCode, Json};
 use mpl_token_metadata::{
     pda::find_metadata_account,
@@ -13,12 +14,6 @@ use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_program::pubkey::Pubkey;
 use solana_sdk::bs58;
 use tracing::Level;
-
-#[derive(Deserialize)]
-pub struct FetchAccountRequest {
-    pub network_config: NetworkConfig,
-    pub mint: String,
-}
 
 #[derive(Deserialize, Debug, Serialize)]
 pub struct UriData {
@@ -34,19 +29,27 @@ pub struct UriData {
 
 #[derive(Serialize)]
 pub struct FetchAccountResponse {
-    pub network: NetworkConfig,
+    pub network: String,
     pub metadata: MetadataWrapper,
     pub token_data: Data,
     pub uri_data: UriData,
 }
 
 pub async fn fetch_nft_handler(
-    Json(payload): Json<FetchAccountRequest>,
+    Path((id, network)): Path<(String, String)>,
 ) -> Result<Json<FetchAccountResponse>, (StatusCode, Json<serde_json::Value>)> {
-    let network = payload.network_config.network;
-    let pubkey = Pubkey::from_str(&payload.mint).unwrap();
+    let s_slice: &str = &network;
+    let network_string = match s_slice {
+        "Mainnet" => Network::Mainnet,
+        "Testnet" => Network::Mainnet,
+        "Devnet" => Network::Mainnet,
+        "Localnet" => Network::Mainnet,
+        &_ => Network::Mainnet,
+    };
 
-    let rpc_client = RpcClient::new(network.fetch_url());
+    let pubkey = Pubkey::from_str(&id).unwrap();
+
+    let rpc_client = RpcClient::new(network_string.get_network_url());
 
     let (pda, _bump) = find_metadata_account(&pubkey);
     let metadata_account = rpc_client.get_account_data(&pda).await;
@@ -66,7 +69,7 @@ pub async fn fetch_nft_handler(
                         StatusCode::OK => {
                             let uri_data: UriData = response.json().await.unwrap();
                             Ok(Json(FetchAccountResponse {
-                                network: payload.network_config,
+                                network: network.to_string(),
                                 metadata: MetadataWrapper {
                                     // key: value.key,
                                     update_authority: bs58::encode(value.update_authority)
