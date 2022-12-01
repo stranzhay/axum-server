@@ -14,6 +14,6 @@ RUN rm ./target/release/deps/axum-server*
 RUN cargo build --release
 
 FROM debian:buster-slim
-COPY --from=build /holy/target/release/axum-server .
+COPY --from=build /axum-server/target/release/axum-server .
 
 CMD ["./axum-server"]
