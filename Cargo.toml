@@ -15,7 +15,7 @@ solana-sdk = "1.14.6"
 solana-client = "1.14.6"
 solana-account-decoder = "1.14.6"
 solana-program = "1.14.6"
-mpl-token-metadata = { version = "1.4.1", features = ["no-entrypoint"] }
+mpl-token-metadata = { version = "1.4.1", features = ["no-entrypoint", "serde-feature"] }
 async-trait = "0.1.57"
 tokio = "1.14.1"
 anyhow = "1.0.58"
