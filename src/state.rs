@@ -20,8 +20,8 @@ pub struct Data {
     pub symbol: String,
     pub uri: String,
     pub seller_fee_basis_points: u16,
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub creators: Option<Vec<Creator>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub creators: Option<Vec<Creator>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -83,21 +83,21 @@ pub struct Collection {
 
 #[derive(Serialize, Deserialize)]
 pub struct Metadata {
-    // pub key: Key,
+    pub key: Key,
     pub update_authority: String,
     pub mint: String,
     pub primary_sale_happened: bool,
     pub is_mutable: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub edition_nonce: Option<u8>,
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub token_standard: Option<TokenStandard>,
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub collection: Option<Collection>,
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub uses: Option<Uses>,
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub collection_details: Option<CollectionDetails>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token_standard: Option<TokenStandard>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub collection: Option<Collection>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub uses: Option<Uses>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub collection_details: Option<CollectionDetails>,
 }
 
 #[derive(Serialize, Deserialize)]
