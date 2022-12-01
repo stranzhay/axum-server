@@ -49,6 +49,7 @@ pub async fn fetch_nft_handler(
     let rpc_client = RpcClient::new(network_string.get_network_url());
 
     let (pda, _bump) = find_metadata_account(&pubkey);
+
     let metadata_account = rpc_client.get_account_data(&pda).await;
 
     match metadata_account {

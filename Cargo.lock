@@ -278,7 +278,6 @@ dependencies = [
  "anyhow",
  "async-trait",
  "axum",
- "borsh",
  "dotenv",
  "mpl-token-metadata",
  "reqwest",
