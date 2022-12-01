@@ -1,4 +1,0 @@
-###
-
-GET http://localhost:8080/getNFT/mint/5sBSVRukKzpLVTJqBWDSHZiByM89RAsV5k4H8uvitLRN/network/Mainnet HTTP/1.1
-content-type: application/json

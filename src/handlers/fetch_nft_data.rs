@@ -9,6 +9,7 @@ use mpl_token_metadata::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use shuttle_secrets::SecretStore;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_program::pubkey::Pubkey;
 use tracing::Level;
@@ -31,7 +32,6 @@ pub struct FetchAccountResponse {
     pub metadata: Metadata,
     pub uri_data: UriData,
 }
-
 pub async fn fetch_nft_handler(
     Path((id, network)): Path<(String, String)>,
 ) -> Result<Json<FetchAccountResponse>, (StatusCode, Json<serde_json::Value>)> {
