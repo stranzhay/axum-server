@@ -4,7 +4,6 @@ use axum::routing::get;
 use tower_http::cors::CorsLayer;
 use tracing::Level;
 mod handlers;
-mod state;
 
 use handlers::*;
 

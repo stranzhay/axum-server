@@ -1,9 +1,5 @@
 use std::str::FromStr;
 
-use crate::state::{
-    Collection, CollectionDetails, Creator, Data, Key, Metadata as MetadataWrapper, TokenStandard,
-    UseMethod, Uses,
-};
 use crate::utils::Network;
 use axum::extract::Path;
 use axum::{http::StatusCode, Json};
@@ -15,7 +11,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_program::pubkey::Pubkey;
-use solana_sdk::bs58;
 use tracing::Level;
 
 #[derive(Deserialize, Debug, Serialize)]
@@ -74,7 +69,7 @@ pub async fn fetch_nft_handler(
                             Ok(Json(FetchAccountResponse {
                                 network: network.to_string(),
                                 metadata: value,
-                                uri_data
+                                uri_data,
                             }))
                         }
                         _s => {
