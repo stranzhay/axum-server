@@ -1,29 +1,57 @@
-name: CI
+# name of the workflow
+name: Rust
+
+# run workflow when the condition is met
 on:
+# run when code is pushed on the `main` branch
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+# run when a pull request to the `main` branch
+  pull_request:
+    branches: [ "main" ]
 
+# env variables
+env:
+  CARGO_TERM_COLOR: always
+
+# jobs
 jobs:
-  test:
+# job name
+  build:
+  # os to run the job on support macOS and windows also
     runs-on: ubuntu-latest
+# steps for job
     steps:
-      - uses: actions/checkout@v2
-      - name: Build Docker image
-        run: docker build -t registry.heroku.com/${{ secrets.HEROKU_APP }}/web:latest .
+    # this will get the code and set the git
+    - uses: actions/checkout@v3
+    # run the build
+    - name: Build
+    # using cargo to build
+      run: cargo build --release
 
-      - name: Docker image info
-        run: docker images
+    # for deployment
+    - name: make dir
+    # create a directory
+      run: mkdir app
+    # put the app in it
+    - name: copy
+      run: mv ./target/release/axum-server ./app/axum
 
-      - name: Login to container registry
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:login
 
-      - name: Push Docker image
-        run: docker push registry.heroku.com/${{ secrets.HEROKU_APP }}/web
+    # heroku deployment
+    - uses: akhileshns/heroku-deploy@v3.12.12
+      with:
+      # key from repository secrets
+        heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+        # name of the Heroku app
+        heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
+        # email from which the app is uploaded
+        heroku_email: "strange1120@gmail.com"
 
-      - name: Release
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:release -a ${{ secrets.HEROKU_APP }} web
+        # app directory
+        appdir: "./app"
+
+        # start command
+        procfile: "web: ./axum"
+        # buildpack is like environment used to run the app
+        buildpack: "https://github.com/ph3nx/heroku-binary-buildpack.git"
