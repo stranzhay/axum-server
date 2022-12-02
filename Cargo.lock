@@ -288,6 +288,7 @@ dependencies = [
  "solana-sdk",
  "spl-token",
  "sync_wrapper",
+ "thiserror",
  "tower-http",
  "tracing",
  "tracing-subscriber",
