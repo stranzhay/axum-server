@@ -88,12 +88,12 @@ pub async fn fetch_nft_handler(
             }
             _s => {
                 tracing::event!(Level::ERROR, "Could not retrieve uri metadata.");
-                return Err(FetchError::FailedToDeserializeData);
+                return Err(FetchError::FailedToFetchUriData);
             }
         },
         Err(_) => {
             tracing::event!(Level::ERROR, "Error on fetching metadata from uri request.");
-            return Err(FetchError::FailedToDeserializeData);
+            return Err(FetchError::FailedToFetchUriData);
         }
     };
 

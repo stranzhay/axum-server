@@ -7,7 +7,6 @@ pub enum Network {
     Mainnet,
     Testnet,
     Devnet,
-    Localnet,
 }
 
 impl Network {
@@ -17,22 +16,20 @@ impl Network {
             Self::Mainnet => mainnet_url.to_string(),
             Self::Testnet => "https://api.testnet.solana.com".to_string(),
             Self::Devnet => "https://api.devnet.solana.com".to_string(),
-            Self::Localnet => "http://localhost:8899".to_string(),
         }
     }
 }
 
 impl FromStr for Network {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let thang = match s {
-            "Mainnet" => Network::Mainnet,
-            "Testnet" => Network::Mainnet,
-            "Devnet" => Network::Mainnet,
-            "Localnet" => Network::Mainnet,
+        let network = match s {
+            "mainnet" => Network::Mainnet,
+            "testnet" => Network::Testnet,
+            "devnet" => Network::Devnet,
             &_ => Network::Mainnet,
         };
 
-        Ok(thang)
+        Ok(network)
     }
 
     type Err = ParseError;

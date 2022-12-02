@@ -44,6 +44,7 @@ pub struct MetadataWrapper {
 pub enum FetchError {
     FailedToGetAccountData,
     FailedToDeserializeData,
+    FailedToFetchUriData,
 }
 
 impl IntoResponse for FetchError {
@@ -51,6 +52,7 @@ impl IntoResponse for FetchError {
         let body = match self {
             FetchError::FailedToGetAccountData => "Failed to get mint account data.",
             FetchError::FailedToDeserializeData => "Failed to deserialize mint account data.",
+            FetchError::FailedToFetchUriData => "Failed to retrieve uri data.",
         };
 
         (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
