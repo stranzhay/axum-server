@@ -1,74 +1,27 @@
 use std::str::FromStr;
 
+use mpl_token_metadata::state::Data;
 use tracing::Level;
 
+use crate::state::{Collection, FetchAccountResponse, FetchError, MetadataWrapper, UriData};
 use crate::utils::Network;
 use axum::Json;
-use axum::{
-    extract::Path,
-    http::StatusCode,
-    response::{IntoResponse, Response},
-};
+use axum::{extract::Path, http::StatusCode};
 
 use mpl_token_metadata::{
     pda::find_metadata_account,
     state::{Metadata, TokenMetadataAccount},
 };
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
+
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_program::pubkey::Pubkey;
-
-#[derive(Deserialize, Debug, Serialize)]
-pub struct UriData {
-    pub name: String,
-    pub symbol: String,
-    pub description: String,
-    pub seller_fee_basis_points: u16,
-    pub image: String,
-    pub external_url: String,
-    pub attributes: Vec<Value>,
-    pub properties: Value,
-}
-
-pub enum FetchError {
-    FailedToGetAccountData,
-    FailedToDeserializeData,
-}
-
-impl IntoResponse for FetchError {
-    fn into_response(self) -> Response {
-        let body = match self {
-            FetchError::FailedToGetAccountData => "Failed to get mint account data.",
-            FetchError::FailedToDeserializeData => "Failed to deserialize mint account data.",
-        };
-
-        (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
-    }
-}
-
-#[derive(Serialize)]
-pub struct FetchAccountResponse {
-    pub network: String,
-    // pub metadata: Metadata,
-    pub uri_data: UriData,
-}
 
 pub async fn fetch_nft_handler(
     Path((id, network)): Path<(String, String)>,
 ) -> Result<Json<FetchAccountResponse>, FetchError> {
-    let s_slice: &str = &network;
-    let network_string = match s_slice {
-        "Mainnet" => Network::Mainnet,
-        "Testnet" => Network::Mainnet,
-        "Devnet" => Network::Mainnet,
-        "Localnet" => Network::Mainnet,
-        &_ => Network::Mainnet,
-    };
-
     let pubkey = Pubkey::from_str(&id).unwrap();
 
-    let rpc_client = RpcClient::new(network_string.get_network_url());
+    let rpc_client = RpcClient::new(Network::from_str(&network).unwrap().get_network_url());
 
     let (pda, _bump) = find_metadata_account(&pubkey);
 
@@ -82,7 +35,43 @@ pub async fn fetch_nft_handler(
     tracing::event!(Level::INFO, "NFT metadata account fetch successful");
 
     let deser_metadata = match Metadata::safe_deserialize(&mut metadata_account.as_slice()) {
-        Ok(account_data) => account_data,
+        Ok(account_data) => MetadataWrapper {
+            key: account_data.key,
+            update_authority: account_data.update_authority.to_string(),
+            mint: account_data.mint.to_string(),
+            data: Data {
+                name: account_data
+                    .data
+                    .name
+                    .trim_matches(char::from(0))
+                    .to_string(),
+                symbol: account_data
+                    .data
+                    .symbol
+                    .trim_matches(char::from(0))
+                    .to_string(),
+                uri: account_data
+                    .data
+                    .uri
+                    .trim_matches(char::from(0))
+                    .to_string(),
+                seller_fee_basis_points: account_data.data.seller_fee_basis_points,
+                creators: account_data.data.creators,
+            },
+            primary_sale_happened: account_data.primary_sale_happened,
+            is_mutable: account_data.is_mutable,
+            edition_nonce: account_data.edition_nonce,
+            token_standard: account_data.token_standard,
+            collection: match account_data.collection {
+                Some(collection) => Some(Collection {
+                    verified: collection.verified,
+                    key: collection.key.to_string(),
+                }),
+                None => None,
+            },
+            uses: account_data.uses,
+            collection_details: account_data.collection_details,
+        },
         Err(_) => {
             tracing::event!(Level::ERROR, "NFT metadata account fetch to deserialize.");
             return Err(FetchError::FailedToDeserializeData);
@@ -110,7 +99,7 @@ pub async fn fetch_nft_handler(
 
     Ok(Json(FetchAccountResponse {
         network: network.to_string(),
-        // metadata: value,
+        metadata: deser_metadata,
         uri_data,
     }))
 }
